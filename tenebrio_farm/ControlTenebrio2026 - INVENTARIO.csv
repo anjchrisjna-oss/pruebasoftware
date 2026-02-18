@@ -1,0 +1,8 @@
+Producto,Entradas,Salidas,Stock Actual,Estado,Stock Mínimo,,Producto,Fecha,Proveedor,Cantidad,Lote,Coste Total,Precio/Kg
+Salvado,4000,"624,5","3375,5",✅ OK,150,,Salvado,01/01/2026,Martibar,1500,652200,,"0,42"
+Brocoli,50,"0,6","49,4",,20,,,,,,,,
+Frass,5000,,5000,,,,Salvado,02/01/2026,Martibar,1500,652200,,"0,42"
+,,,,,,,Frass,21/01/2026,Propio,5000,H34,,"0,38"
+,,,,,,,Salvado,23/01/2026,Martibar,1000,9-2,390,"0,39"
+,,,,,,,Brocoli,05/02/2026,ex,50,5684,0,0
+,,,,,,,Brocoli,5/02/2026,xxx,50,35235,0,0
