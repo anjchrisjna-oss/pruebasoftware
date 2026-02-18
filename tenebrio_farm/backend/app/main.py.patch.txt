@@ -1,6 +1,0 @@
-# MODIFICACIÓN EN backend/app/main.py
-# Añade este import junto al resto:
-from .routers.history import router as history_router
-
-# Y añade este include_router junto al resto:
-app.include_router(history_router)

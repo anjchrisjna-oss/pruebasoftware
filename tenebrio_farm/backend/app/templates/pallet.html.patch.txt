@@ -1,3 +1,0 @@
-<!-- MODIFICACIÓN EN templates/pallet.html -->
-<!-- Añade un botón/enlace al historial del palet en la ficha -->
-<a href="/ui/pallets/{{ pallet.id }}/history">Ver historial del palet</a>

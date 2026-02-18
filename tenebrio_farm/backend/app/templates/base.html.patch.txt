@@ -1,3 +1,0 @@
-<!-- MODIFICACIÓN EN templates/base.html -->
-<!-- En tu navbar añade un link a Historial (idealmente cerca de Producción/Avisos) -->
-<a href="/ui/history">Historial</a>
