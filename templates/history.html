@@ -1,0 +1,74 @@
+{% extends "base.html" %}
+{% block title %}Historial | Tenebrio Farm{% endblock %}
+{% block head_extra %}
+<style>
+body { font-family: Arial, sans-serif; margin: 20px; background:#f6f7fb; }
+    .container { max-width: 1400px; margin: 0 auto; }
+    a { color:#2b59ff; text-decoration:none; font-weight:bold; }
+    .toplinks a { margin-right: 10px; }
+    h1 { margin: 0 0 10px; }
+    .small { font-size: 12px; color:#6b7280; }
+
+    .card { background:white; border-radius: 14px; box-shadow: 0 6px 20px rgba(0,0,0,0.06); padding: 14px; }
+
+    table { width:100%; border-collapse: collapse; }
+    th, td { text-align:left; padding:10px; border-bottom:1px solid #eee; font-size: 14px; vertical-align: top; }
+    th { position: sticky; top: 0; background: #fff; z-index: 2; }
+    .nowrap { white-space: nowrap; }
+</style>
+{% endblock %}
+{% block content %}
+
+
+  <h1>{{ title }}</h1>
+  <p class="small">Mostrando {{ rows|length }} filas (últimas registradas).</p>
+
+  <div class="card">
+    <table>
+      <thead>
+        <tr>
+          <th class="nowrap">Fecha</th>
+          <th class="nowrap">Hora</th>
+          <th>Tipo Tarea</th>
+          <th>Pallet</th>
+          <th>Responsable</th>
+          <th class="nowrap">Tiempo</th>
+          <th>Alimento 1</th>
+          <th class="nowrap">Cant 1 (Kg/b)</th>
+          <th>Alimento 2</th>
+          <th class="nowrap">Cant 2 (Kg/b)</th>
+          <th class="nowrap">Frass Kg total</th>
+          <th>Nueva Ubicación</th>
+          <th>Anotaciones</th>
+          <th class="nowrap">Peso Total Larva (Kg)</th>
+          <th class="nowrap">Peso por Bandeja (Kg)</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for r in rows %}
+        <tr>
+          <td class="nowrap">{{ r.fecha }}</td>
+          <td class="nowrap">{{ r.hora }}</td>
+          <td>{{ r.tipo }}</td>
+          <td class="nowrap">
+            <a href="/ui/pallet/{{ r.pallet_id }}">{{ r.pallet_code }}</a>
+            &nbsp;|&nbsp;
+            <a href="/ui/pallet/{{ r.pallet_id }}/history" class="small">ver historial</a>
+          </td>
+          <td>{{ r.responsable }}</td>
+          <td class="nowrap">{{ r.tiempo if r.tiempo is not none else "" }}</td>
+          <td>{{ r.alimento1 }}</td>
+          <td class="nowrap">{{ r.cant1 if r.cant1 is not none else "" }}</td>
+          <td>{{ r.alimento2 }}</td>
+          <td class="nowrap">{{ r.cant2 if r.cant2 is not none else "" }}</td>
+          <td class="nowrap">{{ r.frass if r.frass is not none else "" }}</td>
+          <td>{{ r.new_loc }}</td>
+          <td>{{ r.anot }}</td>
+          <td class="nowrap">{{ r.peso_total if r.peso_total is not none else "" }}</td>
+          <td class="nowrap">{{ r.peso_bandeja if r.peso_bandeja is not none else "" }}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+{% endblock %}

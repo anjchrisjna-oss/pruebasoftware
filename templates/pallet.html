@@ -1,0 +1,233 @@
+{% extends "base.html" %}
+{% block title %}Pallet {{ pallet.code }} | Tenebrio Farm{% endblock %}
+{% block head_extra %}
+<style>
+body { font-family: Arial, sans-serif; margin: 20px; background:#f6f7fb; }
+    .container { max-width: 1200px; margin: 0 auto; }
+    a { color:#2b59ff; text-decoration:none; font-weight:bold; }
+    .toplinks a { margin-right: 10px; }
+    .small { font-size: 12px; color:#6b7280; }
+    .msg { padding: 10px 12px; border-radius: 10px; margin: 10px 0; }
+    .ok { background:#e9f7ef; color:#146c43; border:1px solid #b7ebc6; }
+    .err { background:#fdecec; color:#b42318; border:1px solid #f5c2c7; }
+    .card { background:white; border-radius: 14px; box-shadow: 0 6px 20px rgba(0,0,0,0.06); padding: 14px; margin-bottom: 14px; }
+    .row { display:flex; gap: 12px; flex-wrap: wrap; align-items: end; }
+    .col { flex:1; min-width: 220px; }
+    label { display:block; font-size: 13px; margin-top: 10px; font-weight: 800; }
+    input, select { width: 100%; padding: 10px; border-radius: 10px; border: 1px solid #d7dbe7; margin-top: 6px; background: white; }
+    button { margin-top: 12px; width: 100%; padding: 12px; border-radius: 10px; border: 0; background: #2b59ff; color: white; font-weight: 900; cursor:pointer; }
+    button:hover { opacity: .95; }
+    table { width:100%; border-collapse: collapse; }
+    th, td { text-align:left; padding:10px; border-bottom:1px solid #eee; font-size: 14px; vertical-align: middle; }
+    .pill { display:inline-block; padding:4px 8px; border-radius:999px; font-size:12px; background:#f3f4f6; font-weight:900; }
+</style>
+{% endblock %}
+{% block content %}
+
+
+  
+  
+
+  <div class="card">
+    <h1 style="margin:0 0 6px;">Pallet {{ pallet.code }}</h1>
+    <div class="small">
+      Sala: <b>{{ room.name if room else pallet.room_id }}</b> |
+      Bandejas: <b>{{ pallet.tray_count }}</b> |
+      Estado: <b>{{ pallet.status }}</b> |
+      Lote: <b>{{ batch.code if batch else pallet.batch_month_id }}</b> |
+      Ciclo: <b>{{ pallet.cycle_stage or "ACTIVE" }}</b>
+      {% if pallet.is_closed %}
+        <span class="pill" style="background:#ffd6d6;">CERRADO</span>
+      {% else %}
+        <span class="pill" style="background:#d7f7d7;">ACTIVO</span>
+      {% endif %}
+    </div>
+    <div class="small" style="margin-top:6px;">
+      <a href="/ui/pallet/{{ pallet.id }}/export.csv">⬇ Exportar CSV completo</a>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2 style="margin:0 0 10px;">Acciones rápidas</h2>
+    <div class="row">
+      <div class="col">
+        <form method="post" action="/ui/pallets/status">
+          <input type="hidden" name="pallet_id" value="{{ pallet.id }}">
+          <label>Estado</label>
+          <select name="status">
+            <option value="active" {% if pallet.status == "active" %}selected{% endif %}>active</option>
+            <option value="cleaning" {% if pallet.status == "cleaning" %}selected{% endif %}>cleaning</option>
+            <option value="quarantine" {% if pallet.status == "quarantine" %}selected{% endif %}>quarantine</option>
+            <option value="disabled" {% if pallet.status == "disabled" %}selected{% endif %}>disabled</option>
+            <option value="empty" {% if pallet.status == "empty" %}selected{% endif %}>empty</option>
+          </select>
+          <button type="submit">✅ Guardar estado</button>
+        </form>
+      </div>
+
+      <div class="col">
+        <form method="post" action="/ui/pallets/move">
+          <input type="hidden" name="pallet_id" value="{{ pallet.id }}">
+          <label>Mover a sala</label>
+          <select name="to_room_id">
+            {% for r in rooms %}
+              <option value="{{ r.id }}" {% if pallet.room_id == r.id %}selected{% endif %}>{{ r.name }}</option>
+            {% endfor %}
+          </select>
+          <label>Motivo (opcional)</label>
+          <input name="reason" placeholder="Ej: reorganización" />
+          <button type="submit">🚚 Mover pallet</button>
+        </form>
+      </div>
+
+      <div class="col">
+        {% if pallet.is_closed %}
+          <form method="post" action="/ui/pallet/{{ pallet.id }}/reopen">
+            <label>Ciclo</label>
+            <input value="CERRADO" disabled />
+            <button type="submit">♻️ Reabrir ciclo</button>
+          </form>
+        {% else %}
+          <form method="post" action="/ui/pallet/{{ pallet.id }}/close">
+            <label>Cerrar ciclo</label>
+            <input name="reason" placeholder="Motivo (opcional)" />
+            <button type="submit">🛑 Cerrar ciclo</button>
+          </form>
+        {% endif %}
+      </div>
+    </div>
+
+    <div class="small" style="margin-top:10px;">
+      Consejo: para registrar tareas (alimentación, criba, etc.) de forma profesional usa <a href="/ui/production">Producción PRO</a>.
+    </div>
+  </div>
+
+  <div class="card">
+    <h2 style="margin:0 0 10px;">Resumen alimentación (FeedEvents)</h2>
+    {% if feed_summary|length == 0 %}
+      <p class="small">Sin consumos registrados aún.</p>
+    {% else %}
+      <table>
+        <thead><tr><th>Alimento</th><th>Total (kg)</th></tr></thead>
+        <tbody>
+          {% for name, total in feed_summary %}
+            <tr><td>{{ name }}</td><td>{{ "%.3f"|format(total or 0) }}</td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    {% endif %}
+  </div>
+
+  <div class="card">
+    <h2 style="margin:0 0 10px;">Registro PRO (ProductionTask)</h2>
+    {% if pro_tasks|length == 0 %}
+      <p class="small">Aún no hay tareas PRO registradas para este pallet.</p>
+    {% else %}
+      <table>
+        <thead>
+          <tr>
+            <th>Fecha</th>
+            <th>Tarea</th>
+            <th>Resp.</th>
+            <th>Min</th>
+            <th>Ubicación</th>
+            <th>Alim1 (kg/b)</th>
+            <th>Alim2 (kg/b)</th>
+            <th>Frass</th>
+            <th>Peso larva</th>
+            <th>Nota</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for t in pro_tasks %}
+            <tr>
+              <td><b>{{ t.day }}</b></td>
+              <td>{{ t.task_name }}</td>
+              <td>{{ t.responsible or "" }}</td>
+              <td>{{ t.minutes if t.minutes is not none else "" }}</td>
+              <td>{{ t.location or "" }}</td>
+              <td>
+                {% if t.feed1_item %}{{ t.feed1_item.name }} ({{ t.feed1_qty_per_tray_kg }}){% endif %}
+              </td>
+              <td>
+                {% if t.feed2_item %}{{ t.feed2_item.name }} ({{ t.feed2_qty_per_tray_kg }}){% endif %}
+              </td>
+              <td>{{ t.frass_kg if t.frass_kg is not none else "" }}</td>
+              <td>
+                {% if t.larvae_total_kg is not none %}
+                  {{ t.larvae_total_kg }} kg ({{ t.larvae_per_tray_kg }} kg/b)
+                {% endif %}
+              </td>
+              <td class="small">{{ t.note or "" }}</td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    {% endif %}
+  </div>
+
+  <div class="card">
+    <h2 style="margin:0 0 10px;">Historial FeedEvents</h2>
+    {% if feeds|length == 0 %}
+      <p class="small">Sin eventos de alimentación.</p>
+    {% else %}
+      <table>
+        <thead><tr><th>Fecha</th><th>Alimento</th><th>kg/bandeja</th><th>Bandejas</th><th>Total</th><th>Nota</th></tr></thead>
+        <tbody>
+          {% for f in feeds %}
+            <tr>
+              <td>{{ f.created_at }}</td>
+              <td>{{ f.item.name if f.item else f.item_id }}</td>
+              <td>{{ f.qty_per_tray_kg if f.qty_per_tray_kg is not none else "" }}</td>
+              <td>{{ f.tray_count_used }}</td>
+              <td><b>{{ "%.3f"|format(f.qty_total_kg) }}</b></td>
+              <td class="small">{{ f.note or "" }}</td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    {% endif %}
+  </div>
+
+  <div class="card">
+    <h2 style="margin:0 0 10px;">Historial SieveEvents</h2>
+    {% if sieves|length == 0 %}
+      <p class="small">Sin eventos de criba.</p>
+    {% else %}
+      <table>
+        <thead><tr><th>Fecha</th><th>Frass (kg)</th><th>Residuo</th><th>Nota</th></tr></thead>
+        <tbody>
+          {% for s in sieves %}
+            <tr>
+              <td>{{ s.created_at }}</td>
+              <td><b>{{ "%.3f"|format(s.frass_kg) }}</b></td>
+              <td>{{ s.residue_kg if s.residue_kg is not none else "" }}</td>
+              <td class="small">{{ s.note or "" }}</td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    {% endif %}
+  </div>
+
+  <div class="card">
+    <h2 style="margin:0 0 10px;">Movimientos de sala</h2>
+    {% if moves|length == 0 %}
+      <p class="small">Sin movimientos.</p>
+    {% else %}
+      <table>
+        <thead><tr><th>Fecha</th><th>De</th><th>A</th><th>Motivo</th></tr></thead>
+        <tbody>
+          {% for m in moves %}
+            <tr>
+              <td>{{ m.moved_at }}</td>
+              <td>{{ m.from_room.name if m.from_room else "" }}</td>
+              <td>{{ m.to_room.name if m.to_room else "" }}</td>
+              <td class="small">{{ m.reason or "" }}</td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    {% endif %}
+  </div>
+{% endblock %}

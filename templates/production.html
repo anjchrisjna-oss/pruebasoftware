@@ -1,0 +1,303 @@
+{% extends "base.html" %}
+{% block title %}Producción PRO | Tenebrio Farm{% endblock %}
+{% block head_extra %}
+<style>
+body { font-family: Arial, sans-serif; margin: 20px; background:#f6f7fb; }
+    .container { max-width: 1200px; margin: 0 auto; }
+    a { color:#2b59ff; text-decoration:none; font-weight:bold; }
+    .toplinks a { margin-right: 10px; }
+    h1 { margin: 0 0 8px; }
+    .small { font-size: 12px; color:#6b7280; }
+
+    .msg { padding: 10px 12px; border-radius: 10px; margin: 10px 0; }
+    .ok { background:#e9f7ef; color:#146c43; border:1px solid #b7ebc6; }
+    .err { background:#fdecec; color:#b42318; border:1px solid #f5c2c7; }
+
+    .card { background:white; border-radius: 14px; box-shadow: 0 6px 20px rgba(0,0,0,0.06); padding: 14px; margin-bottom: 14px; }
+
+    label { display:block; font-size: 13px; margin-top: 10px; font-weight: 800; }
+    input, select, textarea { width: 100%; padding: 10px; border-radius: 10px; border: 1px solid #d7dbe7; margin-top: 6px; background: white; }
+    textarea { min-height: 70px; }
+
+    .row { display:flex; gap: 12px; flex-wrap: wrap; align-items: end; }
+    .col { flex:1; min-width: 220px; }
+
+    button { margin-top: 12px; width: 100%; padding: 12px; border-radius: 10px; border: 0; background: #2b59ff; color: white; font-weight: 900; cursor:pointer; }
+    button:hover { opacity: .95; }
+
+    .toolbar { display:flex; gap:10px; flex-wrap: wrap; align-items:center; margin: 10px 0; }
+    .toolbtn { padding: 8px 10px; border-radius: 10px; border: 1px solid #d7dbe7; background: #fff; cursor: pointer; font-weight: 900; }
+    .counter { font-weight: 900; color:#111827; background:#eef2ff; border-radius:999px; padding: 6px 10px; }
+
+    .pallets {
+      background:#f8fafc;
+      border: 2px dashed #d1d5db;
+      border-radius: 14px;
+      padding: 12px;
+      overflow: auto;
+      max-height: 440px;
+    }
+
+    table { width:100%; border-collapse: collapse; min-width: 800px; }
+    th, td { text-align:left; padding:10px; border-bottom:1px solid #eee; font-size: 14px; vertical-align: middle; }
+    th { position: sticky; top: 0; background: #fff; z-index: 2; }
+
+    .pill { display:inline-block; padding:4px 8px; border-radius:999px; font-size:12px; background:#f3f4f6; font-weight:900; }
+    .active { background:#dcfce7; border:1px solid #bbf7d0; color:#166534; }
+    .cleaning { background:#fff7ed; border:1px solid #fed7aa; color:#9a3412; }
+    .quarantine { background:#fee2e2; border:1px solid #fecaca; color:#991b1b; }
+    .disabled { background:#f3f4f6; border:1px solid #e5e7eb; color:#374151; }
+    .empty { background:#e0f2fe; border:1px solid #bae6fd; color:#075985; }
+</style>
+{% endblock %}
+{% block content %}
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Tenebrio Farm - Registro PRO</title>
+  <style>
+    body { font-family: Arial, sans-serif; margin: 20px; background:#f6f7fb; }
+    .container { max-width: 1200px; margin: 0 auto; }
+    a { color:#2b59ff; text-decoration:none; font-weight:bold; }
+    .toplinks a { margin-right: 10px; }
+    h1 { margin: 0 0 8px; }
+    .small { font-size: 12px; color:#6b7280; }
+
+    .msg { padding: 10px 12px; border-radius: 10px; margin: 10px 0; }
+    .ok { background:#e9f7ef; color:#146c43; border:1px solid #b7ebc6; }
+    .err { background:#fdecec; color:#b42318; border:1px solid #f5c2c7; }
+
+    .card { background:white; border-radius: 14px; box-shadow: 0 6px 20px rgba(0,0,0,0.06); padding: 14px; margin-bottom: 14px; }
+
+    label { display:block; font-size: 13px; margin-top: 10px; font-weight: 800; }
+    input, select, textarea { width: 100%; padding: 10px; border-radius: 10px; border: 1px solid #d7dbe7; margin-top: 6px; background: white; }
+    textarea { min-height: 70px; }
+
+    .row { display:flex; gap: 12px; flex-wrap: wrap; align-items: end; }
+    .col { flex:1; min-width: 220px; }
+
+    button { margin-top: 12px; width: 100%; padding: 12px; border-radius: 10px; border: 0; background: #2b59ff; color: white; font-weight: 900; cursor:pointer; }
+    button:hover { opacity: .95; }
+
+    .toolbar { display:flex; gap:10px; flex-wrap: wrap; align-items:center; margin: 10px 0; }
+    .toolbtn { padding: 8px 10px; border-radius: 10px; border: 1px solid #d7dbe7; background: #fff; cursor: pointer; font-weight: 900; }
+    .counter { font-weight: 900; color:#111827; background:#eef2ff; border-radius:999px; padding: 6px 10px; }
+
+    .pallets {
+      background:#f8fafc;
+      border: 2px dashed #d1d5db;
+      border-radius: 14px;
+      padding: 12px;
+      overflow: auto;
+      max-height: 440px;
+    }
+
+    table { width:100%; border-collapse: collapse; min-width: 800px; }
+    th, td { text-align:left; padding:10px; border-bottom:1px solid #eee; font-size: 14px; vertical-align: middle; }
+    th { position: sticky; top: 0; background: #fff; z-index: 2; }
+
+    .pill { display:inline-block; padding:4px 8px; border-radius:999px; font-size:12px; background:#f3f4f6; font-weight:900; }
+    .active { background:#dcfce7; border:1px solid #bbf7d0; color:#166534; }
+    .cleaning { background:#fff7ed; border:1px solid #fed7aa; color:#9a3412; }
+    .quarantine { background:#fee2e2; border:1px solid #fecaca; color:#991b1b; }
+    .disabled { background:#f3f4f6; border:1px solid #e5e7eb; color:#374151; }
+    .empty { background:#e0f2fe; border:1px solid #bae6fd; color:#075985; }
+  </style>
+</head>
+<body>
+<div class="container">
+
+  <!-- MENÚ: actualizado -->
+  
+
+  <h1>Registro de Tareas PRO (tipo SELECTOR)</h1>
+  <p class="small">
+    Registra una tarea para muchos pallets a la vez. Si indicas alimento en kg/bandeja, el sistema calcula el total por pallet
+    (kg/bandeja × bandejas) y descuenta stock. Si indicas frass, lo suma a stock.
+  </p>
+
+  
+  
+
+  <div class="card">
+    <form method="post" action="/ui/production/record" id="proForm">
+
+      <div class="row">
+        <div class="col">
+          <label>Fecha</label>
+          <input type="date" name="day" value="{{ today }}" required />
+        </div>
+        <div class="col">
+          <label>Tarea</label>
+          <input name="task_name" placeholder="Ej: Alimentación / Criba / Limpieza / Extracción..." required />
+        </div>
+        <div class="col">
+          <label>Responsable</label>
+          <input name="responsible" placeholder="Nombre operario" />
+        </div>
+        <div class="col">
+          <label>Tiempo (min)</label>
+          <input type="number" step="1" min="0" name="minutes" value="0" />
+        </div>
+        <div class="col">
+          <label>Ubicación (Aula)</label>
+          <input name="location" placeholder="Ej: AULA_1" />
+        </div>
+      </div>
+
+      <div class="row">
+        <div class="col">
+          <label>Alimento 1 (opcional)</label>
+          <select name="feed1_item_id">
+            <option value="">-- Ninguno --</option>
+            {% for it in items_feed %}
+              <option value="{{ it.id }}">{{ it.name }}</option>
+            {% endfor %}
+          </select>
+        </div>
+        <div class="col">
+          <label>kg/bandeja (Alimento 1)</label>
+          <input type="number" step="0.001" min="0" name="feed1_qty_per_tray_kg" placeholder="Ej: 0.5" />
+        </div>
+
+        <div class="col">
+          <label>Alimento 2 (opcional)</label>
+          <select name="feed2_item_id">
+            <option value="">-- Ninguno --</option>
+            {% for it in items_feed %}
+              <option value="{{ it.id }}">{{ it.name }}</option>
+            {% endfor %}
+          </select>
+        </div>
+        <div class="col">
+          <label>kg/bandeja (Alimento 2)</label>
+          <input type="number" step="0.001" min="0" name="feed2_qty_per_tray_kg" placeholder="Ej: 0.2" />
+        </div>
+      </div>
+
+      <div class="row">
+        <div class="col">
+          <label>Frass (kg) (opcional)</label>
+          <input type="number" step="0.001" min="0" name="frass_kg" placeholder="Ej: 2.5" />
+        </div>
+        <div class="col">
+          <label>Peso Larva Total (kg) (opcional)</label>
+          <input type="number" step="0.001" min="0" name="larvae_total_kg" placeholder="Ej: 18.0" />
+        </div>
+        <div class="col" style="flex:2; min-width: 320px;">
+          <label>Nota (opcional)</label>
+          <textarea name="note" placeholder="Ej: rendimientos, incidencias, cambios..."></textarea>
+        </div>
+      </div>
+
+      <button type="submit">✅ Registrar tarea PRO para pallets seleccionados</button>
+    </form>
+  </div>
+
+  <div class="card">
+    <h2 style="margin:0 0 8px;">Seleccionar pallets</h2>
+
+    <div class="row">
+      <div class="col">
+        <label>Filtrar por sala</label>
+        <select id="roomFilter" onchange="applyFilters()">
+          <option value="">-- Todas --</option>
+          {% for r in rooms %}
+            <option value="{{ r.id }}" {% if room_filter == (r.id|string) %}selected{% endif %}>{{ r.name }}</option>
+          {% endfor %}
+        </select>
+      </div>
+      <div class="col">
+        <label>Buscar por código</label>
+        <input id="qFilter" value="{{ q }}" placeholder="Ej: H-012" oninput="applyFiltersDebounced()" />
+      </div>
+    </div>
+
+    <div class="toolbar">
+      <button type="button" class="toolbtn" onclick="selectAll(true)">Seleccionar todo</button>
+      <button type="button" class="toolbtn" onclick="selectAll(false)">Quitar selección</button>
+      <span class="counter">Seleccionados: <span id="selCount">0</span></span>
+      <span class="small">Tip: los checkboxes están ligados al formulario PRO.</span>
+    </div>
+
+    <div class="pallets">
+      <table>
+        <thead>
+          <tr>
+            <th></th>
+            <th>Código</th>
+            <th>Sala</th>
+            <th>Bandejas</th>
+            <th>Estado</th>
+          </tr>
+        </thead>
+        <tbody id="palletBody">
+          {% for p in pallets %}
+          <tr data-room="{{ p.room_id }}" data-code="{{ p.code }}">
+            <td>
+              <input type="checkbox" name="pallet_ids" value="{{ p.id }}" form="proForm" onchange="updateCount()" />
+            </td>
+            <td><a href="/ui/pallet/{{ p.id }}">{{ p.code }}</a></td>
+            <td>{{ p.room_id }}</td>
+            <td>{{ p.tray_count }}</td>
+            <td><span class="pill {{ p.status }}">{{ p.status }}</span></td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+      {% if pallets|length == 0 %}
+        <p class="small">No hay pallets para mostrar.</p>
+      {% endif %}
+    </div>
+
+  </div>
+
+</div>
+
+<script>
+  function getChecks() {
+    return Array.from(document.querySelectorAll('input[type="checkbox"][name="pallet_ids"]'));
+  }
+
+  function updateCount() {
+    const selected = getChecks().filter(c => c.checked).length;
+    document.getElementById('selCount').textContent = String(selected);
+  }
+
+  function selectAll(flag) {
+    getChecks().forEach(c => c.checked = flag);
+    updateCount();
+  }
+
+  function applyFilters() {
+    const room = document.getElementById('roomFilter').value.trim();
+    const q = document.getElementById('qFilter').value.trim().toUpperCase();
+
+    const rows = Array.from(document.querySelectorAll('#palletBody tr'));
+    rows.forEach(r => {
+      const rRoom = r.getAttribute('data-room') || "";
+      const rCode = (r.getAttribute('data-code') || "").toUpperCase();
+
+      let ok = true;
+      if (room) ok = ok && (rRoom === room);
+      if (q) ok = ok && rCode.includes(q);
+
+      r.style.display = ok ? "" : "none";
+    });
+  }
+
+  let t = null;
+  function applyFiltersDebounced() {
+    if (t) clearTimeout(t);
+    t = setTimeout(applyFilters, 150);
+  }
+
+  applyFilters();
+  updateCount();
+</script>
+
+</body>
+</html>
+{% endblock %}

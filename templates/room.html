@@ -1,0 +1,134 @@
+{% extends "base.html" %}
+{% block title %}Sala {{ room.name }} | Tenebrio Farm{% endblock %}
+{% block head_extra %}
+<style>
+body { font-family: Arial, sans-serif; margin: 20px; background:#f6f7fb; }
+    .container { max-width: 1100px; margin: 0 auto; }
+    a { color:#2b59ff; text-decoration:none; font-weight:bold; }
+    .toplinks a { margin-right: 10px; }
+    .card { background: white; border-radius: 14px; padding: 16px; box-shadow: 0 6px 20px rgba(0,0,0,0.06); margin-bottom: 14px; }
+    h1 { margin: 0 0 6px; }
+    h2 { margin: 0 0 10px; font-size: 18px; }
+    .small { font-size: 12px; color:#6b7280; }
+    .row { display:flex; gap:10px; flex-wrap: wrap; align-items:center; }
+    .pill { display:inline-block; padding:6px 10px; border-radius:999px; font-size:12px; background:#eef2ff; }
+    .warn { background:#fff7ed; border:1px solid #fed7aa; color:#9a3412; font-weight:800; }
+    .danger { background:#fee2e2; border:1px solid #fecaca; color:#991b1b; font-weight:900; }
+    .ok { background:#dcfce7; border:1px solid #bbf7d0; color:#166534; font-weight:900; }
+    table { width:100%; border-collapse: collapse; }
+    th, td { text-align:left; padding:10px; border-bottom:1px solid #eee; font-size: 14px; vertical-align: middle; }
+    ul { margin: 6px 0 0 18px; }
+</style>
+{% endblock %}
+{% block content %}
+
+
+  <div class="card">
+    <h1>Sala {{ room.name }}</h1>
+    <div class="row">
+      <span class="pill">ID: <b>{{ room.id }}</b></span>
+      <span class="pill">Hoy: <b>{{ today }}</b></span>
+
+      {% if status == "danger" %}
+        <span class="pill danger">⛔ ALERTA</span>
+      {% elif status == "warn" %}
+        <span class="pill warn">⚠ Atención</span>
+      {% else %}
+        <span class="pill ok">✅ OK</span>
+      {% endif %}
+
+      {% if not env_today %}
+        <span class="pill warn">⚠ Falta registro ambiental de hoy</span>
+      {% else %}
+        <span class="pill">✅ Ambiente hoy registrado</span>
+      {% endif %}
+    </div>
+
+    <div style="margin-top:10px;">
+      <h2>🚨 Alertas automáticas (sin IA)</h2>
+      <p class="small">
+        Rangos actuales: Temp {{ alert_rules.temp_c.min }}–{{ alert_rules.temp_c.max }} °C,
+        HR {{ alert_rules.rh_pct.min }}–{{ alert_rules.rh_pct.max }} %,
+        CO₂ {{ alert_rules.co2_ppm.min }}–{{ alert_rules.co2_ppm.max }} ppm.
+      </p>
+
+      {% if alerts|length == 0 %}
+        <p class="small">Sin alertas.</p>
+      {% else %}
+        <ul>
+          {% for a in alerts %}
+            {% if "fuera de rango" in a %}
+              <li><b style="color:#991b1b;">{{ a }}</b></li>
+            {% else %}
+              <li>{{ a }}</li>
+            {% endif %}
+          {% endfor %}
+        </ul>
+      {% endif %}
+    </div>
+
+    {% if latest %}
+      <p class="small" style="margin-top:10px;">
+        Último registro: <b>{{ latest.day }}</b> — Temp <b>{{ latest.temp_c }}</b>°C, HR <b>{{ latest.rh_pct }}</b>%, CO₂ <b>{{ latest.co2_ppm }}</b> ppm ({{ latest.source }})
+      </p>
+    {% else %}
+      <p class="small" style="margin-top:10px;">Aún no hay registros ambientales en esta sala.</p>
+    {% endif %}
+  </div>
+
+  <div class="card">
+    <h2>📦 Pallets en esta sala ({{ pallets|length }})</h2>
+    <table>
+      <thead>
+        <tr>
+          <th>Código</th>
+          <th>Bandejas</th>
+          <th>Estado</th>
+          <th>Lote</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for p in pallets %}
+          <tr>
+            <td><a href="/ui/pallet/{{ p.id }}">{{ p.code }}</a></td>
+            <td>{{ p.tray_count }}</td>
+            <td>{{ p.status }}</td>
+            <td>{{ p.batch_month_id }}</td>
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+    {% if pallets|length == 0 %}
+      <p class="small">No hay pallets en esta sala.</p>
+    {% endif %}
+  </div>
+
+  <div class="card">
+    <h2>🌡️ Historial ambiental (últimos 30)</h2>
+    <table>
+      <thead>
+        <tr>
+          <th>Día</th>
+          <th>Temp (°C)</th>
+          <th>HR (%)</th>
+          <th>CO₂ (ppm)</th>
+          <th>Fuente</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for e in env_rows %}
+          <tr>
+            <td><b>{{ e.day }}</b></td>
+            <td>{{ e.temp_c }}</td>
+            <td>{{ e.rh_pct }}</td>
+            <td>{{ e.co2_ppm }}</td>
+            <td>{{ e.source }}</td>
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+    {% if env_rows|length == 0 %}
+      <p class="small">Sin registros aún.</p>
+    {% endif %}
+  </div>
+{% endblock %}

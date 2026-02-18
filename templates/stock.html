@@ -1,0 +1,174 @@
+{% extends "base.html" %}
+
+{% block title %}Tenebrio Farm - Stock{% endblock %}
+
+{% block head_extra %}
+<style>
+  h1 { margin: 0 0 10px; }
+  .card { margin-bottom: 14px; }
+  table { width:100%; border-collapse: collapse; }
+  th, td { padding:8px; border-bottom:1px solid #e5e7eb; text-align:left; vertical-align: top; }
+  th { background:#f9fafb; }
+  .small { font-size: 12px; color:#6b7280; }
+  .row { display:flex; gap:10px; flex-wrap:wrap; align-items:flex-end; }
+  label { font-size: 12px; color:#374151; display:block; margin-bottom:4px; }
+  input, select { padding:8px; border:1px solid #d1d5db; border-radius:10px; }
+  button { padding:8px 12px; border-radius:10px; border:0; background:#2b59ff; color:white; font-weight:700; cursor:pointer; }
+  button.secondary { background:#111827; }
+</style>
+{% endblock %}
+
+{% block content %}
+
+<div class="card">
+  <h1>Inventario</h1>
+  <div class="small">Estado actual del stock ({{ today }})</div>
+</div>
+
+<div class="card">
+  <h2 style="margin:0 0 10px;">➕ Registrar compra</h2>
+  <form class="row" method="post" action="/ui/stock/purchase" style="margin:0;">
+    <div>
+      <label>Item</label>
+      <select name="item_id" required>
+        {% for r in rows %}
+          <option value="{{ r.item.id }}">{{ r.item.category }} - {{ r.item.name }} ({{ r.item.unit }})</option>
+        {% endfor %}
+      </select>
+    </div>
+    <div>
+      <label>Cantidad (kg)</label>
+      <input type="number" step="0.001" name="qty_kg" required>
+    </div>
+    <div>
+      <label>Ref (opcional)</label>
+      <input type="text" name="ref_id" placeholder="Factura, proveedor...">
+    </div>
+    <div style="flex:1; min-width:200px;">
+      <label>Nota</label>
+      <input type="text" name="note" placeholder="Compra de salvado...">
+    </div>
+    <div>
+      <button type="submit">Guardar</button>
+    </div>
+  </form>
+</div>
+
+<div class="card">
+  <h2 style="margin:0 0 10px;">🧮 Ajuste manual</h2>
+  <form class="row" method="post" action="/ui/stock/adjust" style="margin:0;">
+    <div>
+      <label>Item</label>
+      <select name="item_id" required>
+        {% for r in rows %}
+          <option value="{{ r.item.id }}">{{ r.item.category }} - {{ r.item.name }} ({{ r.item.unit }})</option>
+        {% endfor %}
+      </select>
+    </div>
+    <div>
+      <label>Ajuste (kg) (+ / -)</label>
+      <input type="number" step="0.001" name="qty_kg" required>
+    </div>
+    <div style="flex:1; min-width:200px;">
+      <label>Nota</label>
+      <input type="text" name="note" placeholder="Corrección inventario...">
+    </div>
+    <div>
+      <button type="submit" class="secondary">Aplicar</button>
+    </div>
+  </form>
+</div>
+
+<div class="card">
+  <h2 style="margin:0 0 10px;">🚦 Umbrales de avisos (Stock)</h2>
+  <div class="small" style="margin-bottom:10px;">Si pones mínimos, la pestaña <b>Avisos</b> marcará amarillo/rojo automáticamente.</div>
+  <form class="row" method="post" action="/ui/stock/thresholds" style="margin:0;">
+    <div>
+      <label>Item</label>
+      <select name="item_id" required>
+        {% for r in rows %}
+          <option value="{{ r.item.id }}">{{ r.item.category }} - {{ r.item.name }}</option>
+        {% endfor %}
+      </select>
+    </div>
+    <div>
+      <label>Umbral mínimo (amarillo)</label>
+      <input type="number" step="0.001" name="min_threshold" placeholder="1.000">
+    </div>
+    <div>
+      <label>Umbral crítico (rojo)</label>
+      <input type="number" step="0.001" name="critical_threshold" placeholder="0.300">
+    </div>
+    <div>
+      <button type="submit" class="secondary">Guardar</button>
+    </div>
+  </form>
+</div>
+
+<div class="card">
+  <h2 style="margin:0 0 10px;">📦 Stock Actual</h2>
+
+  <table>
+    <thead>
+      <tr>
+        <th>Categoría</th>
+        <th>Producto</th>
+        <th>Unidad</th>
+        <th>Cantidad</th>
+        <th>Mín (amarillo)</th>
+        <th>Crítico (rojo)</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for r in rows %}
+      <tr>
+        <td>{{ r.item.category }}</td>
+        <td>{{ r.item.name }}</td>
+        <td>{{ r.item.unit }}</td>
+        <td><b>{{ "%.3f"|format(r.qty) }}</b></td>
+        <td>{{ "%.3f"|format(r.item.min_threshold or 0) }}</td>
+        <td>{{ "%.3f"|format(r.item.critical_threshold or 0) }}</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+
+  {% if rows|length == 0 %}
+    <p class="small">No hay items todavía.</p>
+  {% endif %}
+</div>
+
+<div class="card">
+  <h2 style="margin:0 0 10px;">🕒 Movimientos Recientes</h2>
+
+  <table>
+    <thead>
+      <tr>
+        <th>Fecha</th>
+        <th>Item</th>
+        <th>Tipo</th>
+        <th>Cantidad (kg)</th>
+        <th>Ref</th>
+        <th>Nota</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for m in recent_moves %}
+      <tr>
+        <td>{{ m.created_at }}</td>
+        <td>{{ m.item.name if m.item else m.item_id }}</td>
+        <td>{{ m.move_type }}</td>
+        <td>{{ "%.3f"|format(m.qty_kg) }}</td>
+        <td>{{ m.ref_type }}{% if m.ref_id %} / {{ m.ref_id }}{% endif %}</td>
+        <td>{{ m.note or "" }}</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+
+  {% if recent_moves|length == 0 %}
+    <p class="small">No hay movimientos recientes.</p>
+  {% endif %}
+</div>
+
+{% endblock %}

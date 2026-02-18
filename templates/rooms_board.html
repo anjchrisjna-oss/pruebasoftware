@@ -1,0 +1,504 @@
+{% extends "base.html" %}
+{% block title %}Salas | Tenebrio Farm{% endblock %}
+{% block head_extra %}
+<style>
+body { font-family: Arial, sans-serif; margin: 20px; background:#f6f7fb; }
+    .container { max-width: 1200px; margin: 0 auto; }
+    a { color:#2b59ff; text-decoration:none; font-weight:bold; }
+    h1 { margin: 0 0 10px; }
+    .small { font-size: 12px; color:#6b7280; }
+    .toplinks a { margin-right: 10px; }
+
+    .msg { padding: 10px 12px; border-radius: 10px; margin: 10px 0; }
+    .ok { background:#e9f7ef; color:#146c43; border:1px solid #b7ebc6; }
+    .err { background:#fdecec; color:#b42318; border:1px solid #f5c2c7; }
+
+    .legend { display:flex; gap:10px; flex-wrap: wrap; margin: 12px 0; }
+    .pill { display:inline-flex; gap:6px; align-items:center; padding:6px 10px; border-radius:999px; background:white; box-shadow: 0 6px 20px rgba(0,0,0,0.06); font-size: 12px; }
+    .dot { width:10px; height:10px; border-radius:999px; display:inline-block; }
+
+    .rooms-grid { display:grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+
+    .room-card {
+      background: white;
+      border-radius: 14px;
+      box-shadow: 0 6px 20px rgba(0,0,0,0.06);
+      padding: 14px;
+    }
+
+    .room-header { display:flex; justify-content: space-between; align-items: baseline; gap: 10px; }
+    .room-title { font-size: 18px; font-weight: 800; margin: 0; }
+    .room-stats { display:flex; gap: 10px; flex-wrap: wrap; }
+    .stat { background:#f3f4f6; padding:4px 8px; border-radius:999px; font-size: 12px; }
+
+    .statuspill { display:inline-block; padding:6px 10px; border-radius:999px; font-size:12px; font-weight:900; margin-top:6px; }
+    .sp-ok { background:#dcfce7; border:1px solid #bbf7d0; color:#166534; }
+    .sp-warn { background:#fff7ed; border:1px solid #fed7aa; color:#9a3412; }
+    .sp-danger { background:#fee2e2; border:1px solid #fecaca; color:#991b1b; }
+
+    .batch-bar {
+      background: white;
+      border-radius: 14px;
+      box-shadow: 0 6px 20px rgba(0,0,0,0.06);
+      padding: 14px;
+      margin: 14px 0;
+    }
+
+    label { display:block; font-size: 13px; margin-top: 10px; }
+    input, select { width: 100%; padding: 10px; border-radius: 10px; border: 1px solid #d7dbe7; margin-top: 6px; background: white; }
+    button { margin-top: 12px; width: 100%; padding: 12px; border-radius: 10px; border: 0; background: #2b59ff; color: white; font-weight: bold; cursor:pointer; }
+    button:hover { opacity: .95; }
+
+    .row { display:flex; gap: 12px; flex-wrap: wrap; align-items: end; }
+    .col { flex:1; min-width: 220px; }
+    .split { display:grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+
+    .room-plan {
+      margin-top: 12px;
+      background: #f8fafc;
+      border: 2px dashed #d1d5db;
+      border-radius: 14px;
+      padding: 12px;
+      min-height: 250px;
+      position: relative;
+      overflow: auto;
+    }
+
+    .pallet-grid {
+      display: grid;
+      grid-template-columns: repeat(10, minmax(110px, 1fr));
+      gap: 8px;
+      min-width: 1120px;
+      align-items: stretch;
+    }
+
+    .pallet {
+      border-radius: 10px;
+      padding: 8px;
+      border: 1px solid #e5e7eb;
+      background: white;
+      text-decoration: none;
+      color: #111827;
+      display: block;
+      position: relative;
+    }
+
+    .pallet:hover { outline: 2px solid #2b59ff33; }
+
+    .pallet .code { font-weight: 800; font-size: 12px; padding-left: 24px; }
+    .pallet .meta { font-size: 11px; color:#6b7280; margin-top: 2px; padding-left: 24px; }
+    .badge {
+      display:inline-block;
+      margin-top: 6px;
+      padding: 3px 8px;
+      border-radius: 999px;
+      font-size: 11px;
+      font-weight: 800;
+      color: white;
+      margin-left: 24px;
+    }
+
+    .check {
+      position: absolute;
+      left: 8px;
+      top: 8px;
+      transform: scale(1.2);
+    }
+
+    .active { background:#16a34a; }
+    .cleaning { background:#f59e0b; }
+    .quarantine { background:#ef4444; }
+    .disabled { background:#6b7280; }
+    .empty { background:#0ea5e9; }
+
+    .toolbar {
+      display:flex;
+      gap:10px;
+      flex-wrap: wrap;
+      align-items: center;
+      margin-top: 6px;
+    }
+
+    .toolbtn {
+      padding: 8px 10px;
+      border-radius: 10px;
+      border: 1px solid #d7dbe7;
+      background: #fff;
+      cursor: pointer;
+      font-weight: 800;
+    }
+
+    .counter {
+      font-weight: 800;
+      color:#111827;
+      background:#eef2ff;
+      border-radius:999px;
+      padding: 6px 10px;
+    }
+
+    @media (max-width: 900px) {
+      .rooms-grid { grid-template-columns: 1fr; }
+      .pallet-grid { grid-template-columns: repeat(6, minmax(110px, 1fr)); min-width: 700px; }
+    }
+</style>
+{% endblock %}
+{% block content %}
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Tenebrio Farm - Vista Salas</title>
+  <style>
+    body { font-family: Arial, sans-serif; margin: 20px; background:#f6f7fb; }
+    .container { max-width: 1200px; margin: 0 auto; }
+    a { color:#2b59ff; text-decoration:none; font-weight:bold; }
+    h1 { margin: 0 0 10px; }
+    .small { font-size: 12px; color:#6b7280; }
+    .toplinks a { margin-right: 10px; }
+
+    .msg { padding: 10px 12px; border-radius: 10px; margin: 10px 0; }
+    .ok { background:#e9f7ef; color:#146c43; border:1px solid #b7ebc6; }
+    .err { background:#fdecec; color:#b42318; border:1px solid #f5c2c7; }
+
+    .legend { display:flex; gap:10px; flex-wrap: wrap; margin: 12px 0; }
+    .pill { display:inline-flex; gap:6px; align-items:center; padding:6px 10px; border-radius:999px; background:white; box-shadow: 0 6px 20px rgba(0,0,0,0.06); font-size: 12px; }
+    .dot { width:10px; height:10px; border-radius:999px; display:inline-block; }
+
+    .rooms-grid { display:grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+
+    .room-card {
+      background: white;
+      border-radius: 14px;
+      box-shadow: 0 6px 20px rgba(0,0,0,0.06);
+      padding: 14px;
+    }
+
+    .room-header { display:flex; justify-content: space-between; align-items: baseline; gap: 10px; }
+    .room-title { font-size: 18px; font-weight: 800; margin: 0; }
+    .room-stats { display:flex; gap: 10px; flex-wrap: wrap; }
+    .stat { background:#f3f4f6; padding:4px 8px; border-radius:999px; font-size: 12px; }
+
+    .statuspill { display:inline-block; padding:6px 10px; border-radius:999px; font-size:12px; font-weight:900; margin-top:6px; }
+    .sp-ok { background:#dcfce7; border:1px solid #bbf7d0; color:#166534; }
+    .sp-warn { background:#fff7ed; border:1px solid #fed7aa; color:#9a3412; }
+    .sp-danger { background:#fee2e2; border:1px solid #fecaca; color:#991b1b; }
+
+    .batch-bar {
+      background: white;
+      border-radius: 14px;
+      box-shadow: 0 6px 20px rgba(0,0,0,0.06);
+      padding: 14px;
+      margin: 14px 0;
+    }
+
+    label { display:block; font-size: 13px; margin-top: 10px; }
+    input, select { width: 100%; padding: 10px; border-radius: 10px; border: 1px solid #d7dbe7; margin-top: 6px; background: white; }
+    button { margin-top: 12px; width: 100%; padding: 12px; border-radius: 10px; border: 0; background: #2b59ff; color: white; font-weight: bold; cursor:pointer; }
+    button:hover { opacity: .95; }
+
+    .row { display:flex; gap: 12px; flex-wrap: wrap; align-items: end; }
+    .col { flex:1; min-width: 220px; }
+    .split { display:grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+
+    .room-plan {
+      margin-top: 12px;
+      background: #f8fafc;
+      border: 2px dashed #d1d5db;
+      border-radius: 14px;
+      padding: 12px;
+      min-height: 250px;
+      position: relative;
+      overflow: auto;
+    }
+
+    .pallet-grid {
+      display: grid;
+      grid-template-columns: repeat(10, minmax(110px, 1fr));
+      gap: 8px;
+      min-width: 1120px;
+      align-items: stretch;
+    }
+
+    .pallet {
+      border-radius: 10px;
+      padding: 8px;
+      border: 1px solid #e5e7eb;
+      background: white;
+      text-decoration: none;
+      color: #111827;
+      display: block;
+      position: relative;
+    }
+
+    .pallet:hover { outline: 2px solid #2b59ff33; }
+
+    .pallet .code { font-weight: 800; font-size: 12px; padding-left: 24px; }
+    .pallet .meta { font-size: 11px; color:#6b7280; margin-top: 2px; padding-left: 24px; }
+    .badge {
+      display:inline-block;
+      margin-top: 6px;
+      padding: 3px 8px;
+      border-radius: 999px;
+      font-size: 11px;
+      font-weight: 800;
+      color: white;
+      margin-left: 24px;
+    }
+
+    .check {
+      position: absolute;
+      left: 8px;
+      top: 8px;
+      transform: scale(1.2);
+    }
+
+    .active { background:#16a34a; }
+    .cleaning { background:#f59e0b; }
+    .quarantine { background:#ef4444; }
+    .disabled { background:#6b7280; }
+    .empty { background:#0ea5e9; }
+
+    .toolbar {
+      display:flex;
+      gap:10px;
+      flex-wrap: wrap;
+      align-items: center;
+      margin-top: 6px;
+    }
+
+    .toolbtn {
+      padding: 8px 10px;
+      border-radius: 10px;
+      border: 1px solid #d7dbe7;
+      background: #fff;
+      cursor: pointer;
+      font-weight: 800;
+    }
+
+    .counter {
+      font-weight: 800;
+      color:#111827;
+      background:#eef2ff;
+      border-radius:999px;
+      padding: 6px 10px;
+    }
+
+    @media (max-width: 900px) {
+      .rooms-grid { grid-template-columns: 1fr; }
+      .pallet-grid { grid-template-columns: repeat(6, minmax(110px, 1fr)); min-width: 700px; }
+    }
+  </style>
+</head>
+<body>
+<div class="container">
+  
+
+  <h1>Vista gráfica por salas (con acciones en lote + alertas)</h1>
+  <p class="small">
+    Marca pallets con el checkbox y aplica una acción en lote. Hoy: <b>{{ today }}</b>
+  </p>
+
+  
+  
+
+  <div class="legend">
+    <span class="pill"><span class="dot" style="background:#16a34a;"></span> active</span>
+    <span class="pill"><span class="dot" style="background:#f59e0b;"></span> cleaning</span>
+    <span class="pill"><span class="dot" style="background:#ef4444;"></span> quarantine</span>
+    <span class="pill"><span class="dot" style="background:#6b7280;"></span> disabled</span>
+    <span class="pill"><span class="dot" style="background:#0ea5e9;"></span> empty</span>
+  </div>
+
+  <form method="post" action="/ui/rooms/batch" class="batch-bar" id="batchForm">
+    <div class="toolbar">
+      <button type="button" class="toolbtn" onclick="selectAll(true)">Seleccionar todo</button>
+      <button type="button" class="toolbtn" onclick="selectAll(false)">Quitar selección</button>
+      <span class="counter">Seleccionados: <span id="selCount">0</span></span>
+    </div>
+
+    <div class="row" style="margin-top:10px;">
+      <div class="col">
+        <label>Acción</label>
+        <select name="action" id="actionSelect" onchange="toggleActionPanels()" required>
+          <option value="feed">🍽 Alimentar (por bandeja / total)</option>
+          <option value="sieve">🟤 Cribar (frass a stock)</option>
+          <option value="status">🏷 Cambiar estado</option>
+          <option value="move">🚚 Mover a otra sala</option>
+        </select>
+        <p class="small">La acción se aplica solo a los pallets marcados.</p>
+      </div>
+
+      <div class="col" id="panel_status" style="display:none;">
+        <label>Nuevo estado</label>
+        <select name="new_status">
+          <option value="active">active</option>
+          <option value="cleaning">cleaning</option>
+          <option value="quarantine">quarantine</option>
+          <option value="disabled">disabled</option>
+          <option value="empty">empty</option>
+        </select>
+      </div>
+
+      <div class="col" id="panel_move" style="display:none;">
+        <label>Sala destino</label>
+        <select name="move_to_room_id">
+          {% for r in rooms %}
+            <option value="{{ r.id }}">{{ r.name }}</option>
+          {% endfor %}
+        </select>
+        <label>Motivo (opcional)</label>
+        <input name="move_reason" placeholder="Ej: reorganización, temperatura..." />
+      </div>
+
+      <div class="col" id="panel_sieve" style="display:none;">
+        <label>Frass (kg) por pallet</label>
+        <input type="number" step="0.001" min="0" name="sieve_frass_kg" placeholder="Ej: 2.5" />
+        <label>Residuo (kg) (opcional) por pallet</label>
+        <input type="number" step="0.001" min="0" name="sieve_residue_kg" />
+        <label>Nota (opcional)</label>
+        <input name="sieve_note" placeholder="Ej: cribado semanal" />
+      </div>
+
+      <div class="col" id="panel_feed">
+        <label>Alimento</label>
+        <select name="feed_item_id">
+          {% for it in items_feed %}
+            <option value="{{ it.id }}">{{ it.name }}</option>
+          {% endfor %}
+        </select>
+
+        <label>Modo</label>
+        <select name="feed_mode">
+          <option value="per_tray" selected>Por bandeja</option>
+          <option value="total">Total pallet</option>
+        </select>
+
+        <div class="split">
+          <div>
+            <label>kg por bandeja</label>
+            <input type="number" step="0.001" min="0" name="feed_qty_per_tray_kg" placeholder="Ej: 0.5" />
+          </div>
+          <div>
+            <label>kg total pallet</label>
+            <input type="number" step="0.001" min="0" name="feed_qty_total_kg" placeholder="Ej: 13.0" />
+          </div>
+        </div>
+
+        <label>Nota (opcional)</label>
+        <input name="feed_note" placeholder="Ej: ración diaria lote" />
+        <p class="small">En “Por bandeja”: total = kg/bandeja × bandejas del pallet.</p>
+      </div>
+    </div>
+
+    <button type="submit">✅ Ejecutar acción en lote</button>
+  </form>
+
+  <div class="rooms-grid">
+    {% for r in rooms %}
+      <div class="room-card">
+        <div class="room-header">
+          <div>
+            <div class="room-title">
+              <a href="/ui/room/{{ r.id }}">{{ r.name }}</a>
+            </div>
+            <div class="small">ID sala: {{ r.id }}</div>
+
+            {% set st = room_env_status.get(r.id, "warn") %}
+            {% if st == "danger" %}
+              <div class="statuspill sp-danger">⛔ ALERTA</div>
+            {% elif st == "warn" %}
+              <div class="statuspill sp-warn">⚠ ATENCIÓN</div>
+            {% else %}
+              <div class="statuspill sp-ok">✅ OK</div>
+            {% endif %}
+
+            {% if r.id not in env_today_room_ids %}
+              <div class="small" style="margin-top:6px;"><b>Falta registro ambiental de hoy</b></div>
+            {% endif %}
+          </div>
+
+          <div class="room-stats">
+            <span class="stat">Total: <b>{{ stats[r.id].total }}</b></span>
+            <span class="stat">Activos: <b>{{ stats[r.id].active }}</b></span>
+            <span class="stat">Cuarentena: <b>{{ stats[r.id].quarantine }}</b></span>
+          </div>
+        </div>
+
+        <div class="small" style="margin-top:8px;">
+          {% set al = room_env_alerts.get(r.id, []) %}
+          {% if al and al|length > 0 %}
+            {% for a in al[:2] %}
+              {% if "fuera de rango" in a %}
+                <div style="color:#991b1b; font-weight:900;">• {{ a }}</div>
+              {% else %}
+                <div>• {{ a }}</div>
+              {% endif %}
+            {% endfor %}
+            {% if al|length > 2 %}
+              <div class="small">(+{{ al|length - 2 }} más)</div>
+            {% endif %}
+          {% else %}
+            <div class="small">Sin alertas.</div>
+          {% endif %}
+        </div>
+
+        <div class="room-plan" aria-label="Plano de sala">
+          <div class="pallet-grid">
+            {% for p in (pallets_by_room.get(r.id) or []) %}
+              <div class="pallet" data-pallet>
+                <input class="check" type="checkbox" name="pallet_ids" value="{{ p.id }}" form="batchForm" onchange="updateCount()" />
+                <a href="/ui/pallet/{{ p.id }}" style="text-decoration:none; color:inherit;">
+                  <div class="code">{{ p.code }}</div>
+                  <div class="meta">{{ p.tray_count }} bandejas</div>
+                  <span class="badge {{ p.status }}">{{ p.status }}</span>
+                </a>
+              </div>
+            {% endfor %}
+
+            {% if (pallets_by_room.get(r.id) or [])|length == 0 %}
+              <div class="small">No hay pallets en esta sala.</div>
+            {% endif %}
+          </div>
+        </div>
+
+      </div>
+    {% endfor %}
+  </div>
+
+</div>
+
+<script>
+  function getChecks() {
+    return Array.from(document.querySelectorAll('input.check'));
+  }
+
+  function updateCount() {
+    const checks = getChecks();
+    const selected = checks.filter(c => c.checked).length;
+    document.getElementById('selCount').textContent = String(selected);
+  }
+
+  function selectAll(flag) {
+    const checks = getChecks();
+    checks.forEach(c => c.checked = flag);
+    updateCount();
+  }
+
+  function toggleActionPanels() {
+    const val = document.getElementById('actionSelect').value;
+    const panels = ["feed","sieve","status","move"];
+    panels.forEach(p => {
+      const el = document.getElementById("panel_" + p);
+      if (!el) return;
+      el.style.display = (p === val) ? "block" : "none";
+    });
+  }
+
+  toggleActionPanels();
+  updateCount();
+</script>
+
+</body>
+</html>
+{% endblock %}

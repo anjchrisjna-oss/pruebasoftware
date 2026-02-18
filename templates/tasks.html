@@ -1,0 +1,100 @@
+{% extends "base.html" %}
+
+{% block title %}Tenebrio Farm - Tareas{% endblock %}
+
+{% block head_extra %}
+<style>
+  h1 { margin: 0 0 10px; }
+  .card { margin-bottom: 14px; }
+  .row { display:flex; gap: 10px; flex-wrap: wrap; align-items: center; }
+  .tag { padding: 4px 8px; border-radius: 999px; font-size: 12px; background:#eef2ff; display:inline-block; }
+  .done { background:#e9f7ef; }
+  .pending { background:#fff7e6; }
+  button.secondary { background:#111827; }
+  .btnlink { display:inline-block; padding: 8px 12px; border-radius: 10px; background:#2b59ff; color:white; font-weight:bold; }
+  .btnlink:hover { opacity:.95; }
+  .btnlink.gray { background:#111827; }
+</style>
+{% endblock %}
+
+{% block content %}
+
+<div class="card">
+  <div class="row" style="justify-content: space-between;">
+    <div>
+      <h1>Tareas de hoy ({{ today }})</h1>
+      <div class="small">Generadas automáticamente. No se duplican.</div>
+    </div>
+    <div class="row">
+      <a class="btnlink gray" href="/ui/production">Producción PRO</a>
+      <a class="btnlink gray" href="/ui/rooms">Salas</a>
+      <a class="btnlink gray" href="/ui/stock">Stock</a>
+      <form method="post" action="/ui/tasks/generate" style="margin:0;">
+        <button type="submit" class="secondary" style="width:auto; margin-top:0;">
+          🔄 Generar/Actualizar
+        </button>
+      </form>
+    </div>
+  </div>
+</div>
+
+<div class="card">
+  <h2 style="margin:0 0 10px;">📋 Lista</h2>
+
+  <table>
+    <thead>
+      <tr>
+        <th>Estado</th>
+        <th>Tarea</th>
+        <th>Ubicación</th>
+        <th style="width:220px;">Acciones</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for t in tasks %}
+      <tr>
+        <td>
+          {% if t.status == "done" %}
+            <span class="tag done">✅ Hecha</span>
+          {% else %}
+            <span class="tag pending">⏳ Pendiente</span>
+          {% endif %}
+        </td>
+
+        <td><b>{{ t.template.name }}</b></td>
+
+        <td>
+          {% if t.room %}
+            Sala: <b>{{ t.room.name }}</b>
+          {% elif t.pallet %}
+            Pallet:
+            <a href="/ui/pallet/{{ t.pallet.id }}">
+              {{ t.pallet.code }}
+            </a>
+          {% else %}
+            --
+          {% endif %}
+        </td>
+
+        <td>
+          {% if t.status != "done" %}
+            <form method="post" action="/ui/tasks/{{ t.id }}/done" style="margin:0;">
+              <button type="submit" style="width:auto; margin-top:0;">
+                ✅ Marcar hecha
+              </button>
+            </form>
+          {% else %}
+            <span class="small">--</span>
+          {% endif %}
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+
+  {% if tasks|length == 0 %}
+    <p class="small">No hay tareas.</p>
+  {% endif %}
+</div>
+
+{% endblock %}
