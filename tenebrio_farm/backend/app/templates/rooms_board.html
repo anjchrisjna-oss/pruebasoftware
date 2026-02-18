@@ -296,7 +296,7 @@ body { font-family: Arial, sans-serif; margin: 20px; background:#f6f7fb; }
 
   <h1>Vista gráfica por salas (con acciones en lote + alertas)</h1>
   <p class="small">
-    Marca palets con el checkbox y aplica una acción en lote. Hoy: <b>{{ today }}</b>
+    Marca pallets con el checkbox y aplica una acción en lote. Hoy: <b>{{ today }}</b>
   </p>
 
   
@@ -326,7 +326,7 @@ body { font-family: Arial, sans-serif; margin: 20px; background:#f6f7fb; }
           <option value="status">🏷 Cambiar estado</option>
           <option value="move">🚚 Mover a otra sala</option>
         </select>
-        <p class="small">La acción se aplica solo a los palets marcados.</p>
+        <p class="small">La acción se aplica solo a los pallets marcados.</p>
       </div>
 
       <div class="col" id="panel_status" style="display:none;">
@@ -352,9 +352,9 @@ body { font-family: Arial, sans-serif; margin: 20px; background:#f6f7fb; }
       </div>
 
       <div class="col" id="panel_sieve" style="display:none;">
-        <label>Frass (kg) por palet</label>
+        <label>Frass (kg) por pallet</label>
         <input type="number" step="0.001" min="0" name="sieve_frass_kg" placeholder="Ej: 2.5" />
-        <label>Residuo (kg) (opcional) por palet</label>
+        <label>Residuo (kg) (opcional) por pallet</label>
         <input type="number" step="0.001" min="0" name="sieve_residue_kg" />
         <label>Nota (opcional)</label>
         <input name="sieve_note" placeholder="Ej: cribado semanal" />
@@ -371,7 +371,7 @@ body { font-family: Arial, sans-serif; margin: 20px; background:#f6f7fb; }
         <label>Modo</label>
         <select name="feed_mode">
           <option value="per_tray" selected>Por bandeja</option>
-          <option value="total">Total palet</option>
+          <option value="total">Total pallet</option>
         </select>
 
         <div class="split">
@@ -380,14 +380,14 @@ body { font-family: Arial, sans-serif; margin: 20px; background:#f6f7fb; }
             <input type="number" step="0.001" min="0" name="feed_qty_per_tray_kg" placeholder="Ej: 0.5" />
           </div>
           <div>
-            <label>kg total palet</label>
+            <label>kg total pallet</label>
             <input type="number" step="0.001" min="0" name="feed_qty_total_kg" placeholder="Ej: 13.0" />
           </div>
         </div>
 
         <label>Nota (opcional)</label>
         <input name="feed_note" placeholder="Ej: ración diaria lote" />
-        <p class="small">En “Por bandeja”: total = kg/bandeja × bandejas del palet.</p>
+        <p class="small">En “Por bandeja”: total = kg/bandeja × bandejas del pallet.</p>
       </div>
     </div>
 
@@ -457,7 +457,7 @@ body { font-family: Arial, sans-serif; margin: 20px; background:#f6f7fb; }
             {% endfor %}
 
             {% if (pallets_by_room.get(r.id) or [])|length == 0 %}
-              <div class="small">No hay palets en esta sala.</div>
+              <div class="small">No hay pallets en esta sala.</div>
             {% endif %}
           </div>
         </div>

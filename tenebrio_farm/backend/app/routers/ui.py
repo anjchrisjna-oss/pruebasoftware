@@ -168,11 +168,11 @@ def ui_rooms_batch_action(
     db: Session = Depends(get_db),
 ):
     if not pallet_ids:
-        return RedirectResponse(url="/ui/rooms?error=No has seleccionado palets", status_code=303)
+        return RedirectResponse(url="/ui/rooms?error=No has seleccionado pallets", status_code=303)
 
     pallets = db.query(models.Pallet).filter(models.Pallet.id.in_(pallet_ids)).all()
     if not pallets:
-        return RedirectResponse(url="/ui/rooms?error=Palets no encontrados", status_code=303)
+        return RedirectResponse(url="/ui/rooms?error=Pallets no encontrados", status_code=303)
 
     if action == "status":
         allowed = {"active", "cleaning", "quarantine", "disabled", "empty"}
@@ -182,7 +182,7 @@ def ui_rooms_batch_action(
             with smart_begin(db):
                 for p in pallets:
                     p.status = new_status
-            return RedirectResponse(url=f"/ui/rooms?ok=Estado actualizado en {len(pallets)} palets", status_code=303)
+            return RedirectResponse(url=f"/ui/rooms?ok=Estado actualizado en {len(pallets)} pallets", status_code=303)
         except Exception as e:
             return RedirectResponse(
                 url="/ui/rooms?error=" + quote(f"Falló status batch: {type(e).__name__}: {e}"),
@@ -211,7 +211,7 @@ def ui_rooms_batch_action(
                     )
                     p.room_id = move_to_room_id
 
-            return RedirectResponse(url=f"/ui/rooms?ok=Movidos (o ya estaban) {len(pallets)} palets", status_code=303)
+            return RedirectResponse(url=f"/ui/rooms?ok=Movidos (o ya estaban) {len(pallets)} pallets", status_code=303)
         except Exception as e:
             return RedirectResponse(
                 url="/ui/rooms?error=" + quote(f"Falló move batch: {type(e).__name__}: {e}"),
@@ -277,7 +277,7 @@ def ui_rooms_batch_action(
                     crud.add_stock_move(db, sm, commit=False)
                     created += 1
 
-            return RedirectResponse(url=f"/ui/rooms?ok=Alimentados {created} palets (solo activos)", status_code=303)
+            return RedirectResponse(url=f"/ui/rooms?ok=Alimentados {created} pallets (solo activos)", status_code=303)
         except Exception as e:
             return RedirectResponse(
                 url="/ui/rooms?error=" + quote(f"Falló feed batch: {type(e).__name__}: {e}"),
@@ -317,7 +317,7 @@ def ui_rooms_batch_action(
                     crud.add_stock_move(db, sm, commit=False)
                     created += 1
 
-            return RedirectResponse(url=f"/ui/rooms?ok=Cribados {created} palets", status_code=303)
+            return RedirectResponse(url=f"/ui/rooms?ok=Cribados {created} pallets", status_code=303)
         except Exception as e:
             return RedirectResponse(
                 url="/ui/rooms?error=" + quote(f"Falló sieve batch: {type(e).__name__}: {e}"),
@@ -417,7 +417,7 @@ def ui_pallet_detail(pallet_id: str, request: Request, db: Session = Depends(get
 
     stock_feed = [{"item": it, "qty": crud.get_stock_qty(db, it.id)} for it in items_feed]
 
-    # NUEVO: Registro PRO (ProductionTask) vinculado a este palet
+    # NUEVO: Registro PRO (ProductionTask) vinculado a este pallet
     pro_tasks = (
         db.query(ProductionTask)
         .filter(ProductionTask.pallet_id == pallet_id)
@@ -591,7 +591,7 @@ def ui_create_pallet(
 ):
     code = code.strip().upper()
     if not code:
-        return RedirectResponse(url="/ui?error=Código de palet vacío", status_code=303)
+        return RedirectResponse(url="/ui?error=Código de pallet vacío", status_code=303)
     if tray_count <= 0:
         return RedirectResponse(url="/ui?error=El número de bandejas debe ser > 0", status_code=303)
 
@@ -603,7 +603,7 @@ def ui_create_pallet(
 
     dup = db.query(models.Pallet).filter(models.Pallet.code == code).first()
     if dup:
-        return RedirectResponse(url="/ui?error=Ya existe ese código de palet", status_code=303)
+        return RedirectResponse(url="/ui?error=Ya existe ese código de pallet", status_code=303)
 
     p = models.Pallet(
         room_id=room_id,
@@ -615,7 +615,7 @@ def ui_create_pallet(
     )
     db.add(p)
     db.commit()
-    return RedirectResponse(url="/ui?ok=Palet creado", status_code=303)
+    return RedirectResponse(url="/ui?ok=Pallet creado", status_code=303)
 
 
 @router.post("/ui/pallets/move")
@@ -634,7 +634,7 @@ def ui_move_pallet(
         return RedirectResponse(url="/ui?error=Sala destino no encontrada", status_code=303)
 
     if pallet.room_id == to_room_id:
-        return RedirectResponse(url="/ui?error=El palet ya está en esa sala", status_code=303)
+        return RedirectResponse(url="/ui?error=El pallet ya está en esa sala", status_code=303)
 
     move = models.PalletMove(
         pallet_id=pallet.id,
@@ -648,11 +648,11 @@ def ui_move_pallet(
             pallet.room_id = to_room_id
     except Exception as e:
         return RedirectResponse(
-            url=f"/ui/pallet/{pallet.id}?error=" + quote(f"Falló mover palet: {type(e).__name__}: {e}"),
+            url=f"/ui/pallet/{pallet.id}?error=" + quote(f"Falló mover pallet: {type(e).__name__}: {e}"),
             status_code=303,
         )
 
-    return RedirectResponse(url=f"/ui/pallet/{pallet.id}?ok=Palet movido de sala", status_code=303)
+    return RedirectResponse(url=f"/ui/pallet/{pallet.id}?ok=Pallet movido de sala", status_code=303)
 
 
 @router.post("/ui/pallets/status")
