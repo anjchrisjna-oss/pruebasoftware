@@ -40,7 +40,7 @@
 
       <hr style="border:none;border-top:1px solid #eee;margin:14px 0;">
 
-      <h2 style="margin:0 0 8px;">Crear palet</h2>
+      <h2 style="margin:0 0 8px;">Crear pallet</h2>
       <form method="post" action="/ui/pallets/create">
         <label>Sala</label>
         <select name="room_id" required>
@@ -49,7 +49,7 @@
           {% endfor %}
         </select>
 
-        <label>Código palet</label>
+        <label>Código pallet</label>
         <input name="code" placeholder="Ej: H-001" required />
 
         <label>Nº bandejas</label>
@@ -58,7 +58,7 @@
         <label>Notas</label>
         <input name="notes" placeholder="Opcional" />
 
-        <button type="submit">✅ Crear palet</button>
+        <button type="submit">✅ Crear pallet</button>
       </form>
     </div>
 
@@ -90,7 +90,7 @@
     </div>
 
     <div class="card" style="grid-column: 1 / -1;">
-      <h2 style="margin:0 0 8px;">Palets</h2>
+      <h2 style="margin:0 0 8px;">Pallets</h2>
 
       <form method="get" action="/ui" style="display:flex; gap:10px; flex-wrap:wrap; align-items:end;">
         <div style="flex:1; min-width:220px;">
@@ -133,7 +133,7 @@
       </table>
 
       {% if pallets|length == 0 %}
-        <p class="small">No hay palets con esos filtros.</p>
+        <p class="small">No hay pallets con esos filtros.</p>
       {% endif %}
     </div>
 

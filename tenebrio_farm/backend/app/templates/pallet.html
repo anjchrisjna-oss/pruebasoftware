@@ -1,5 +1,5 @@
 {% extends "base.html" %}
-{% block title %}Palet {{ pallet.code }} | Tenebrio Farm{% endblock %}
+{% block title %}Pallet {{ pallet.code }} | Tenebrio Farm{% endblock %}
 {% block head_extra %}
 <style>
 body { font-family: Arial, sans-serif; margin: 20px; background:#f6f7fb; }
@@ -29,7 +29,7 @@ body { font-family: Arial, sans-serif; margin: 20px; background:#f6f7fb; }
   
 
   <div class="card">
-    <h1 style="margin:0 0 6px;">Palet {{ pallet.code }}</h1>
+    <h1 style="margin:0 0 6px;">Pallet {{ pallet.code }}</h1>
     <div class="small">
       Sala: <b>{{ room.name if room else pallet.room_id }}</b> |
       Bandejas: <b>{{ pallet.tray_count }}</b> |
@@ -76,7 +76,7 @@ body { font-family: Arial, sans-serif; margin: 20px; background:#f6f7fb; }
           </select>
           <label>Motivo (opcional)</label>
           <input name="reason" placeholder="Ej: reorganización" />
-          <button type="submit">🚚 Mover palet</button>
+          <button type="submit">🚚 Mover pallet</button>
         </form>
       </div>
 
@@ -121,7 +121,7 @@ body { font-family: Arial, sans-serif; margin: 20px; background:#f6f7fb; }
   <div class="card">
     <h2 style="margin:0 0 10px;">Registro PRO (ProductionTask)</h2>
     {% if pro_tasks|length == 0 %}
-      <p class="small">Aún no hay tareas PRO registradas para este palet.</p>
+      <p class="small">Aún no hay tareas PRO registradas para este pallet.</p>
     {% else %}
       <table>
         <thead>

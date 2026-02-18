@@ -5,14 +5,17 @@ from fastapi.responses import HTMLResponse, RedirectResponse
 from fastapi.templating import Jinja2Templates
 from sqlalchemy.orm import Session
 from contextlib import contextmanager
-from sqlalchemy.exc import InvalidRequestError
+from urllib.parse import quote
 
 from ..database import get_db
 from .. import models, crud
 from ..models_production import ProductionTask
 
 router = APIRouter(tags=["Production UI"])
-templates = Jinja2Templates(directory="app/templates")
+try:
+    templates = Jinja2Templates(directory="app/templates")
+except AssertionError:
+    templates = None
 
 @contextmanager
 def smart_begin(db):
@@ -54,6 +57,8 @@ def _to_float_or_none(v: str | None) -> float | None:
 
 @router.get("/ui/production", response_class=HTMLResponse)
 def ui_production_home(request: Request, db: Session = Depends(get_db)):
+    if templates is None:
+        raise RuntimeError("Jinja2 no está instalado")
     rooms = db.query(models.Room).order_by(models.Room.name).all()
 
     items_feed = (
@@ -109,21 +114,23 @@ def ui_production_record(
     frass_kg: str = Form(""),
     larvae_total_kg: str = Form(""),
 
-    # palets seleccionados
+    # pallets seleccionados
     pallet_ids: list[str] = Form([]),
 
     db: Session = Depends(get_db),
 ):
     if not pallet_ids:
-        return RedirectResponse(url="/ui/production?error=No has seleccionado palets", status_code=303)
+        return RedirectResponse(url="/ui/production?error=No has seleccionado pallets", status_code=303)
 
     task_name = (task_name or "").strip()
     if not task_name:
         return RedirectResponse(url="/ui/production?error=Falta el nombre de la tarea", status_code=303)
 
     # parse day
-    y, m, d = day.split("-")
-    day_date = dt_date(int(y), int(m), int(d))
+    try:
+        day_date = dt_date.fromisoformat((day or "").strip())
+    except ValueError:
+        return RedirectResponse(url="/ui/production?error=Fecha inválida", status_code=303)
 
     # parse numbers safely
     minutes_f = _to_float_or_none(minutes)
@@ -136,7 +143,7 @@ def ui_production_record(
 
     pallets = db.query(models.Pallet).filter(models.Pallet.id.in_(pallet_ids)).all()
     if not pallets:
-        return RedirectResponse(url="/ui/production?error=Palets no encontrados", status_code=303)
+        return RedirectResponse(url="/ui/production?error=Pallets no encontrados", status_code=303)
 
     # Validar alimentos (si hay item, debe haber cantidad > 0)
     def valid_feed(item_id, qty):
@@ -198,7 +205,7 @@ def ui_production_record(
             )
 
     # ---------
-    # Crear registros por palet (transacción única)
+    # Crear registros por pallet (transacción única)
     # ---------
     created = 0
     try:
@@ -308,15 +315,17 @@ def ui_production_record(
 
                 created += 1
     except Exception as e:
-        # IMPORTANTE: con db.begin() ya se hace rollback automático,
-        # pero lo dejamos explícito por seguridad.
+        # IMPORTANTE:
+        # - smart_begin() usa db.begin() cuando no hay transacción activa.
+        # - si ya hay transacción, usa db.begin_nested() (SAVEPOINT).
+        # En ambos casos SQLAlchemy revierte automáticamente al salir con excepción.
+        # Dejamos db.rollback() como red de seguridad para estados de sesión inválidos.
         try:
             db.rollback()
         except Exception:
             pass
 
         import traceback
-        from urllib.parse import quote
 
         tb = traceback.format_exc()
         print("\n=== ERROR GUARDANDO PRO ===\n")
